@@ -3,7 +3,8 @@ package config
 import "os"
 
 type ServerConfig struct {
-	Address string
+	ServerAddress   string
+	DatabaseAddress string
 }
 
 var AppConfig *ServerConfig = nil
@@ -14,7 +15,8 @@ func BuildConfig() *ServerConfig {
 	}
 
 	AppConfig = &ServerConfig{
-		Address: os.Getenv("SERVER_ADDRESS"),
+		ServerAddress:   os.Getenv("SERVER_ADDRESS"),
+		DatabaseAddress: os.Getenv("DATABASE_ADDRESS"),
 	}
 
 	return AppConfig

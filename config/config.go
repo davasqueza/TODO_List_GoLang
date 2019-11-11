@@ -6,10 +6,16 @@ type ServerConfig struct {
 	Address string
 }
 
-var AppConfig ServerConfig
+var AppConfig *ServerConfig = nil
 
-func BuildConfig() ServerConfig {
-	AppConfig.Address = os.Getenv("SERVER_ADDRESS")
+func BuildConfig() *ServerConfig {
+	if AppConfig != nil {
+		return AppConfig
+	}
+
+	AppConfig = &ServerConfig{
+		Address: os.Getenv("SERVER_ADDRESS"),
+	}
 
 	return AppConfig
 }

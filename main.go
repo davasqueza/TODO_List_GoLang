@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"todo-list/config"
+	"todo-list/routes"
 	"todo-list/server"
 )
 
@@ -21,13 +22,14 @@ func main() {
 	var mux = http.NewServeMux()
 
 	var serverInstance = server.NewServer(mux, appConfig.Address, logger)
+	var routesInstance = routes.NewRoutes(logger)
 
-	logger.Print("Server starting")
+	routesInstance.SetupRoutes(mux)
+
+	logger.Printf("Starting server at: %s", appConfig.Address)
 	err = serverInstance.ListenAndServe()
 
 	if err != nil {
 		logger.Fatalf("Server failed to start: %v", err)
 	}
-
-	logger.Printf("Server started at: %s", appConfig.Address)
 }

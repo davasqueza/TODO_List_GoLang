@@ -28,6 +28,8 @@ func (todoController *TodoController) TodoHandler(response http.ResponseWriter, 
 	switch request.Method {
 	case http.MethodGet:
 		todoController.Find(response, request)
+	case http.MethodPost:
+		todoController.Create(response, request)
 	default:
 		response.Header().Set("Allow", "GET, POST, PUT, DELETE")
 		response.WriteHeader(http.StatusMethodNotAllowed)
@@ -63,10 +65,43 @@ func (todoController *TodoController) Find(response http.ResponseWriter, request
 		todoController.logger.Printf("Error when parsing Todo to JSON: %s", err)
 		return
 	}
-
+	response.Header().Set("Content-Type", "application/json; charset=utf-8")
 	_, err = response.Write(parsedResult)
 
 	if err != nil {
 		todoController.logger.Printf("Error when sending a Todo: %s", err)
+	}
+}
+
+func (todoController *TodoController) Create(response http.ResponseWriter, request *http.Request) {
+	var err error = nil
+	var todo models.Todo
+	var createdId interface{}
+	var parsedResult []byte = nil
+
+	err = json.NewDecoder(request.Body).Decode(&todo)
+
+	if err != nil {
+		response.WriteHeader(http.StatusBadRequest)
+		_, err = response.Write([]byte("Bad request"))
+		return
+	}
+
+	createdId, err = todoController.repository.Create(&todo)
+
+	if err != nil {
+		todoController.logger.Printf("Error when creating a Todo: %s", err)
+		response.WriteHeader(http.StatusInternalServerError)
+		_, err = response.Write([]byte("Internal server error"))
+		return
+	}
+
+	parsedResult, err = json.Marshal(createdId)
+
+	response.WriteHeader(http.StatusCreated)
+	_, err = response.Write(parsedResult)
+
+	if err != nil {
+		todoController.logger.Printf("Error when creating a Todo: %s", err)
 	}
 }

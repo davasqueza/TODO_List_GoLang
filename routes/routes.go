@@ -24,5 +24,5 @@ func NewRoutes(logger *log.Logger) *Routes {
 func (routes *Routes) SetupRoutes(mux *http.ServeMux) {
 	var todoController = controlers.NewTodo(routes.logger)
 
-	mux.HandleFunc("/todos", routes.loggerMiddleware.ServerTime(todoController.Find))
+	mux.HandleFunc("/todos/", routes.loggerMiddleware.ServerTime(todoController.TodoHandler))
 }

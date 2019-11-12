@@ -24,9 +24,9 @@ func main() {
 
 	logger.Printf("Connecting to database: %s", appConfig.DatabaseAddress)
 
-	connectToDatabase(appConfig.DatabaseAddress)
+	appConfig.DatabaseClient = connectToDatabase(appConfig.DatabaseAddress, appConfig.DatabaseName)
 
-	logger.Println("Database connection successfully")
+	logger.Println("Database connected successfully")
 	logger.Printf("Starting server at: %s", appConfig.ServerAddress)
 
 	initializeHTTPServer(appConfig.ServerAddress, logger)
@@ -48,7 +48,7 @@ func initializeHTTPServer(serverAddress string, logger *log.Logger) {
 	}
 }
 
-func connectToDatabase(address string) *mongo.Client {
+func connectToDatabase(address string, database string) *mongo.Database {
 	// Set client options
 	var clientOptions = options.Client().ApplyURI(address)
 	var client, err = mongo.Connect(context.TODO(), clientOptions)
@@ -63,5 +63,5 @@ func connectToDatabase(address string) *mongo.Client {
 		log.Fatal(err)
 	}
 
-	return client
+	return client.Database(database)
 }

@@ -19,6 +19,31 @@ func NewTodoRepository() *TodoRepository {
 	}
 }
 
+func (todoRepository *TodoRepository) FindAll(limit int) ([]*models.Todo, error) {
+	var list = []*models.Todo{}
+
+	var cur, err = todoRepository.db.Aggregate(context.TODO(), []bson.D{
+		{{"$match", bson.D{}}},
+		{{"$limit", limit}},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() { _ = cur.Close(context.TODO()) }()
+	for cur.Next(context.TODO()) {
+		var result = &models.Todo{}
+		err = cur.Decode(result)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, result)
+	}
+
+	return list, err
+}
+
 func (todoRepository *TodoRepository) FindById(id string) (*models.Todo, error) {
 	var result = &models.Todo{}
 

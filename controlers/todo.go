@@ -25,9 +25,14 @@ func NewTodo(logger *log.Logger) *TodoController {
 
 func (todoController *TodoController) TodoHandler(response http.ResponseWriter, request *http.Request) {
 	var err error = nil
+	var id = strings.TrimPrefix(request.URL.Path, "/todos/")
 	switch request.Method {
 	case http.MethodGet:
-		todoController.Find(response, request)
+		if id != "" {
+			todoController.FindByID(id, response, request)
+		} else {
+			todoController.FindAll(response, request)
+		}
 	case http.MethodPost:
 		todoController.Create(response, request)
 	default:
@@ -41,12 +46,40 @@ func (todoController *TodoController) TodoHandler(response http.ResponseWriter, 
 	}
 }
 
-func (todoController *TodoController) Find(response http.ResponseWriter, request *http.Request) {
+func (todoController *TodoController) FindAll(response http.ResponseWriter, request *http.Request) {
+	var parsedResult []byte = nil
+	var result []*models.Todo = nil
+	var err error = nil
+
+	result, err = todoController.repository.FindAll(50)
+
+	if err != nil {
+		todoController.logger.Printf("Error when consulting a Todo: %s", err)
+		response.WriteHeader(http.StatusInternalServerError)
+		_, err = response.Write([]byte("Internal server error"))
+		return
+	}
+
+	parsedResult, err = json.Marshal(result)
+
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		_, err = response.Write([]byte("Internal server error"))
+		todoController.logger.Printf("Error when parsing Todo to JSON: %s", err)
+		return
+	}
+	response.Header().Set("Content-Type", "application/json; charset=utf-8")
+	_, err = response.Write(parsedResult)
+
+	if err != nil {
+		todoController.logger.Printf("Error when sending a Todo: %s", err)
+	}
+}
+
+func (todoController *TodoController) FindByID(id string, response http.ResponseWriter, request *http.Request) {
 	var parsedResult []byte = nil
 	var result *models.Todo = nil
 	var err error = nil
-
-	var id = strings.TrimPrefix(request.URL.Path, "/todos/")
 
 	result, err = todoController.repository.FindById(id)
 

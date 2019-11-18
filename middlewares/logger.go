@@ -19,7 +19,10 @@ func NewLogger(logger *log.Logger) *LoggerMiddleware {
 func (loggerMiddleware *LoggerMiddleware) ServerTime(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		startTime := time.Now()
-		defer loggerMiddleware.logger.Printf("Server response time: %.2fs\n", time.Now().Sub(startTime).Seconds())
+		defer func() {
+			var totalTime = time.Now().Sub(startTime) / time.Millisecond
+			loggerMiddleware.logger.Printf("Server response time: %dms\n", totalTime)
+		}()
 		next(w, r)
 	}
 }
